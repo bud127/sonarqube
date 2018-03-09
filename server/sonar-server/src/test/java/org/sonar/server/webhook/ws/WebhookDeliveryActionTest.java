@@ -42,7 +42,7 @@ import org.sonarqube.ws.MediaTypes;
 import org.sonarqube.ws.Webhooks;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.sonar.db.webhook.WebhookDbTesting.newWebhookDeliveryDto;
+import static org.sonar.db.webhook.WebhookDbTesting.newDto;
 import static org.sonar.test.JsonAssert.assertJson;
 
 public class WebhookDeliveryActionTest {
@@ -100,7 +100,7 @@ public class WebhookDeliveryActionTest {
 
   @Test
   public void load_the_delivery_of_example() {
-    WebhookDeliveryDto dto = newWebhookDeliveryDto()
+    WebhookDeliveryDto dto = newDto()
       .setUuid("d1")
       .setComponentUuid(project.uuid())
       .setCeTaskUuid("task-1")
@@ -125,11 +125,10 @@ public class WebhookDeliveryActionTest {
 
   @Test
   public void return_delivery_that_failed_to_be_sent() {
-    WebhookDeliveryDto dto = newWebhookDeliveryDto()
+    WebhookDeliveryDto dto = newDto()
       .setComponentUuid(project.uuid())
       .setSuccess(false)
       .setHttpStatus(null)
-      .setDurationMs(null)
       .setErrorStacktrace("IOException -> can not connect");
     dbClient.webhookDeliveryDao().insert(db.getSession(), dto);
     db.commit();
@@ -141,17 +140,15 @@ public class WebhookDeliveryActionTest {
 
     Webhooks.Delivery actual = response.getDelivery();
     assertThat(actual.hasHttpStatus()).isFalse();
-    assertThat(actual.hasDurationMs()).isFalse();
     assertThat(actual.getErrorStacktrace()).isEqualTo(dto.getErrorStacktrace());
   }
 
   @Test
   public void return_delivery_with_none_of_optional_fields() {
-    WebhookDeliveryDto dto = newWebhookDeliveryDto()
+    WebhookDeliveryDto dto = newDto()
       .setComponentUuid(project.uuid())
       .setCeTaskUuid(null)
       .setHttpStatus(null)
-      .setDurationMs(null)
       .setErrorStacktrace(null)
       .setAnalysisUuid(null);
     dbClient.webhookDeliveryDao().insert(db.getSession(), dto);
@@ -164,14 +161,13 @@ public class WebhookDeliveryActionTest {
 
     Webhooks.Delivery actual = response.getDelivery();
     assertThat(actual.hasHttpStatus()).isFalse();
-    assertThat(actual.hasDurationMs()).isFalse();
     assertThat(actual.hasErrorStacktrace()).isFalse();
     assertThat(actual.hasCeTaskId()).isFalse();
   }
 
   @Test
   public void throw_ForbiddenException_if_not_admin_of_project() {
-    WebhookDeliveryDto dto = newWebhookDeliveryDto()
+    WebhookDeliveryDto dto = newDto()
       .setComponentUuid(project.uuid());
     dbClient.webhookDeliveryDao().insert(db.getSession(), dto);
     db.commit();

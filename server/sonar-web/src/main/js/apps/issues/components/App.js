@@ -21,7 +21,7 @@
 import React from 'react';
 import Helmet from 'react-helmet';
 import key from 'keymaster';
-import { keyBy, without } from 'lodash';
+import { keyBy, union, without } from 'lodash';
 import PropTypes from 'prop-types';
 import PageActions from './PageActions';
 import MyIssuesFilter from './MyIssuesFilter';
@@ -55,7 +55,6 @@ import {
   CurrentUser
 } from '../utils'; */
 import handleRequiredAuthentication from '../../../app/utils/handleRequiredAuthentication';
-import { isLoggedIn } from '../../../app/types';
 import ListFooter from '../../../components/controls/ListFooter';
 import EmptySearch from '../../../components/common/EmptySearch';
 import FiltersHeader from '../../../components/common/FiltersHeader';
@@ -63,6 +62,7 @@ import ScreenPositionHelper from '../../../components/common/ScreenPositionHelpe
 import { getBranchName, isShortLivingBranch } from '../../../helpers/branches';
 import { translate, translateWithParameters } from '../../../helpers/l10n';
 import { scrollToElement } from '../../../helpers/scrolling';
+import Checkbox from '../../../components/controls/Checkbox';
 /*:: import type { Issue } from '../../../components/issue/types'; */
 /*:: import type { RawQuery } from '../../../helpers/query'; */
 import '../styles.css';
@@ -84,6 +84,7 @@ export type Props = {
 /*::
 export type State = {
   bulkChange: 'all' | 'selected' | null,
+  lastChecked: null | string,
   checked: Array<string>,
   facets: { [string]: Facet },
   issues: Array<Issue>,
@@ -123,6 +124,7 @@ export default class App extends React.PureComponent {
     super(props);
     this.state = {
       bulkChange: null,
+      lastChecked: null,
       checked: [],
       facets: {},
       issues: [],
@@ -653,12 +655,36 @@ export default class App extends React.PureComponent {
     });
   };
 
-  handleIssueCheck = (issue /*: string */) => {
-    this.setState(state => ({
-      checked: state.checked.includes(issue)
-        ? without(state.checked, issue)
-        : [...state.checked, issue]
-    }));
+  handleIssueCheck = (issue /*: string */, event /*: Event */) => {
+    // Selecting multiple issues with shift+click
+    const { lastChecked } = this.state;
+    if (event.shiftKey && lastChecked !== null) {
+      this.setState(state => {
+        const issueKeys = state.issues.map(issue => issue.key);
+        const currentIssueIndex = issueKeys.indexOf(issue);
+        const lastSelectedIndex = issueKeys.indexOf(lastChecked);
+        const shouldCheck = state.checked.includes(lastChecked);
+        let { checked } = state;
+        if (currentIssueIndex < 0) {
+          return null;
+        }
+        const start = Math.min(currentIssueIndex, lastSelectedIndex);
+        const end = Math.max(currentIssueIndex, lastSelectedIndex);
+        for (let i = start; i < end + 1; i++) {
+          checked = shouldCheck
+            ? union(checked, [state.issues[i].key])
+            : without(checked, state.issues[i].key);
+        }
+        return { checked };
+      });
+    } else {
+      this.setState(state => ({
+        lastChecked: issue,
+        checked: state.checked.includes(issue)
+          ? without(state.checked, issue)
+          : [...state.checked, issue]
+      }));
+    }
   };
 
   handleIssueChange = (issue /*: Issue */) => {
@@ -716,9 +742,21 @@ export default class App extends React.PureComponent {
   selectNextFlow = () => this.setState(actions.selectNextFlow);
   selectPreviousFlow = () => this.setState(actions.selectPreviousFlow);
 
+  onCheckAll = (checked /*: boolean */) => {
+    if (checked) {
+      this.setState(state => ({ checked: state.issues.map(issue => issue.key) }));
+    } else {
+      this.setState(state => ({ checked: [] }));
+    }
+  };
+
   renderBulkChange(openIssue /*: ?Issue */) {
     const { component, currentUser } = this.props;
-    const { bulkChange, checked, paging } = this.state;
+    const { bulkChange, checked, paging, issues } = this.state;
+
+    const isAllChecked = checked.length > 0 && issues.length === checked.length;
+    const thirdState = checked.length > 0 && !isAllChecked;
+    const isChecked = isAllChecked || thirdState;
 
     if (!currentUser.isLoggedIn || openIssue != null) {
       return null;
@@ -726,8 +764,15 @@ export default class App extends React.PureComponent {
 
     return (
       <div className="pull-left">
+        <Checkbox
+          checked={isChecked}
+          className="spacer-right vertical-middle"
+          id="issues-selection"
+          onCheck={this.onCheckAll}
+          thirdState={thirdState}
+        />
         {checked.length > 0 ? (
-          <div className="dropdown">
+          <div className="dropdown display-inline-block">
             <button id="issues-bulk-change" data-toggle="dropdown">
               {translate('bulk_change')}
               <i className="icon-dropdown little-spacer-left" />
@@ -932,14 +977,13 @@ export default class App extends React.PureComponent {
                 ) : (
                   <PageActions
                     canSetHome={
-                      this.props.onSonarCloud &&
-                      isLoggedIn(this.props.currentUser) &&
-                      this.props.myIssues &&
                       !this.props.organization &&
-                      !this.props.component
+                      !this.props.component &&
+                      (!this.props.onSonarCloud || this.props.myIssues)
                     }
                     loading={this.state.loading}
                     onReload={this.handleReload}
+                    onSonarCloud={this.props.onSonarCloud}
                     paging={paging}
                     selectedIndex={selectedIndex}
                   />

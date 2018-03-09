@@ -112,6 +112,25 @@ export interface CustomMeasure {
   updatedAt?: string;
 }
 
+export interface Duplication {
+  blocks: DuplicationBlock[];
+}
+
+export interface DuplicationBlock {
+  _ref: string;
+  from: number;
+  size: number;
+}
+
+export interface DuplicatedFile {
+  key: string;
+  name: string;
+  project: string;
+  projectName: string;
+  subProject?: string;
+  subProjectName?: string;
+}
+
 export interface Extension {
   key: string;
   name: string;
@@ -122,6 +141,11 @@ export interface FacetValue {
   val: string;
 }
 
+export interface FlowLocation {
+  msg: string;
+  textRange: TextRange;
+}
+
 export interface Group {
   default?: boolean;
   description?: string;
@@ -130,16 +154,27 @@ export interface Group {
   name: string;
 }
 
-export interface HomePage {
-  parameter?: string;
-  type: HomePageType;
-}
+export type HomePage =
+  | { type: HomePageType.Application; component: string }
+  | { type: HomePageType.Issues }
+  | { type: HomePageType.MyIssues }
+  | { type: HomePageType.MyProjects }
+  | { type: HomePageType.Organization; organization: string }
+  | { type: HomePageType.Portfolio; component: string }
+  | { type: HomePageType.Portfolios }
+  | { type: HomePageType.Project; branch: string | undefined; component: string }
+  | { type: HomePageType.Projects };
 
 export enum HomePageType {
-  Project = 'PROJECT',
-  Organization = 'ORGANIZATION',
+  Application = 'APPLICATION',
+  Issues = 'ISSUES',
+  MyIssues = 'MY_ISSUES',
   MyProjects = 'MY_PROJECTS',
-  MyIssues = 'MY_ISSUES'
+  Organization = 'ORGANIZATION',
+  Portfolio = 'PORTFOLIO',
+  Portfolios = 'PORTFOLIOS',
+  Project = 'PROJECT',
+  Projects = 'PROJECTS'
 }
 
 export interface IdentityProvider {
@@ -155,13 +190,78 @@ export function isLoggedIn(user: CurrentUser): user is LoggedInUser {
 }
 
 export function isSameHomePage(a: HomePage, b: HomePage) {
-  return a.type === b.type && a.parameter === b.parameter;
+  return (
+    a.type === b.type &&
+    (a as any).branch === (b as any).branch &&
+    (a as any).component === (b as any).component &&
+    (a as any).organization === (b as any).organization
+  );
+}
+
+export interface Issue {
+  actions?: string[];
+  assignee?: string;
+  assigneeActive?: string;
+  assigneeAvatar?: string;
+  assigneeLogin?: string;
+  assigneeName?: string;
+  author?: string;
+  comments?: IssueComment[];
+  component: string;
+  componentLongName: string;
+  componentQualifier: string;
+  componentUuid: string;
+  creationDate: string;
+  effort?: string;
+  key: string;
+  flows: FlowLocation[][];
+  line?: number;
+  message: string;
+  organization: string;
+  project: string;
+  projectName: string;
+  projectOrganization: string;
+  projectUuid: string;
+  resolution?: string;
+  rule: string;
+  ruleName: string;
+  secondaryLocations: FlowLocation[];
+  severity: string;
+  status: string;
+  subProject?: string;
+  subProjectName?: string;
+  subProjectUuid?: string;
+  tags?: string[];
+  textRange?: TextRange;
+  transitions?: string[];
+  type: string;
+}
+
+export interface IssueComment {
+  author?: string;
+  authorActive?: boolean;
+  authorAvatar?: string;
+  authorLogin?: string;
+  authorName?: string;
+  createdAt: string;
+  htmlText: string;
+  key: string;
+  markdown: string;
+  updatable: boolean;
 }
 
 export interface LightComponent {
   key: string;
   organization: string;
   qualifier: string;
+}
+
+export interface LinearIssueLocation {
+  from: number;
+  index?: number;
+  line: number;
+  startLine?: number;
+  to: number;
 }
 
 export interface LoggedInUser extends CurrentUser {
@@ -245,6 +345,13 @@ export interface PermissionTemplate {
   }>;
 }
 
+export interface ProjectLink {
+  id: string;
+  name: string;
+  type: string;
+  url: string;
+}
+
 export interface Rule {
   isTemplate?: boolean;
   key: string;
@@ -326,9 +433,24 @@ export interface ShortLivingBranch {
   type: BranchType.SHORT;
 }
 
+export interface SourceLine {
+  code?: string;
+  conditions?: number;
+  coverageStatus?: string;
+  coveredConditions?: number;
+  duplicated?: boolean;
+  line: number;
+  lineHits?: number;
+  scmAuthor?: string;
+  scmDate?: string;
+  scmRevision?: string;
+}
+
 export interface SourceViewerFile {
   canMarkAsFavorite?: boolean;
+  fav?: boolean;
   key: string;
+  leakPeriodDate?: string;
   measures: {
     coverage?: string;
     duplicationDensity?: string;
@@ -358,6 +480,13 @@ export interface TestCase {
   status: string;
 }
 
+export interface TextRange {
+  startLine: number;
+  startOffset: number;
+  endLine: number;
+  endOffset: number;
+}
+
 export interface User {
   active: boolean;
   avatar?: string;
@@ -375,4 +504,19 @@ export interface User {
 export enum Visibility {
   Public = 'public',
   Private = 'private'
+}
+
+export interface Webhook {
+  key: string;
+  latestDelivery?: WebhookDelivery;
+  name: string;
+  url: string;
+}
+
+export interface WebhookDelivery {
+  at: string;
+  durationMs: number;
+  httpStatus?: number;
+  id: string;
+  success: boolean;
 }
