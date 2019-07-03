@@ -1,6 +1,6 @@
 /*
  * SonarQube
- * Copyright (C) 2009-2017 SonarSource SA
+ * Copyright (C) 2009-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -19,9 +19,18 @@
  */
 package org.sonar.server.organization.ws;
 
+import org.sonar.api.config.Configuration;
 import org.sonar.core.platform.Module;
 
+import static org.sonar.core.config.WebConstants.SONARCLOUD_ENABLED;
+
 public class OrganizationsWsModule extends Module {
+
+  private final Configuration config;
+
+  public OrganizationsWsModule(Configuration config) {
+    this.config = config;
+  }
 
   @Override
   protected void configureModule() {
@@ -29,16 +38,20 @@ public class OrganizationsWsModule extends Module {
       OrganizationsWs.class,
       OrganizationsWsSupport.class,
       // actions
-      AddMemberAction.class,
-      CreateAction.class,
-      DeleteAction.class,
-      EnableSupportAction.class,
-      RemoveMemberAction.class,
       SearchAction.class,
       SearchMembersAction.class,
       SearchMyOrganizationsAction.class,
-      UpdateAction.class,
+      // Update of project visibility is used on on-premise instances, not only on SonarCloud / Organizations
       UpdateProjectVisibilityAction.class);
+    if (config.getBoolean(SONARCLOUD_ENABLED).orElse(false)) {
+      add(
+        EnableSupportAction.class,
+        AddMemberAction.class,
+        CreateAction.class,
+        DeleteAction.class,
+        RemoveMemberAction.class,
+        UpdateAction.class);
+    }
   }
 
 }

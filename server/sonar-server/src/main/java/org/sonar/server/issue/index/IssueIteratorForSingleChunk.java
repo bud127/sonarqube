@@ -1,6 +1,6 @@
 /*
  * SonarQube
- * Copyright (C) 2009-2017 SonarSource SA
+ * Copyright (C) 2009-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -86,7 +86,7 @@ class IssueIteratorForSingleChunk implements IssueIterator {
     "inner join rules r on r.id = i.rule_id " +
     "inner join projects c on c.uuid = i.component_uuid ";
 
-  private static final String PROJECT_FILTER = " and c.project_uuid = ?";
+  private static final String PROJECT_FILTER = " and c.project_uuid = ? and i.project_uuid = ? ";
   private static final String ISSUE_KEY_FILTER_PREFIX = " and i.kee in (";
   private static final String ISSUE_KEY_FILTER_SUFFIX = ")";
 
@@ -155,6 +155,8 @@ class IssueIteratorForSingleChunk implements IssueIterator {
   private void setParameters(PreparedStatement stmt) throws SQLException {
     int index = 1;
     if (projectUuid != null) {
+      stmt.setString(index, projectUuid);
+      index++;
       stmt.setString(index, projectUuid);
       index++;
     }

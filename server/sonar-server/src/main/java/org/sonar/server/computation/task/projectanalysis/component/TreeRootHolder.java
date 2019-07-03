@@ -1,6 +1,6 @@
 /*
  * SonarQube
- * Copyright (C) 2009-2017 SonarSource SA
+ * Copyright (C) 2009-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -39,4 +39,10 @@ public interface TreeRootHolder {
    */
   Component getComponentByRef(int ref);
 
+  /**
+   * Number of components, including root.
+   *
+   * @throws IllegalStateException if the holder is empty (ie. there is no root yet)
+   */
+  int getSize();
 }

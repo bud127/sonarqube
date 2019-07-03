@@ -1,6 +1,6 @@
 /*
  * SonarQube
- * Copyright (C) 2009-2017 SonarSource SA
+ * Copyright (C) 2009-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -39,6 +39,7 @@ type State = {|
 
 export default class MetaLink extends React.PureComponent {
   /*:: props: {
+    iconOnly?: boolean,
     link: Link
   };
 */
@@ -66,7 +67,7 @@ export default class MetaLink extends React.PureComponent {
   }
 
   render() {
-    const { link } = this.props;
+    const { iconOnly, link } = this.props;
 
     return (
       <li>
@@ -74,10 +75,10 @@ export default class MetaLink extends React.PureComponent {
           className="link-with-icon"
           href={link.url}
           target="_blank"
-          onClick={!isClickable(link) && this.handleClick}>
+          onClick={!isClickable(link) && this.handleClick}
+          title={link.name}>
           {this.renderLinkIcon(link)}
-          &nbsp;
-          {link.name}
+          {!iconOnly && `\u00A0${link.name}`}
         </a>
         {this.state.expanded && (
           <div className="little-spacer-top">

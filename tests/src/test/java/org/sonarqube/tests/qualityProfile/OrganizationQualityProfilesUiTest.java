@@ -1,6 +1,6 @@
 /*
  * SonarQube
- * Copyright (C) 2009-2017 SonarSource SA
+ * Copyright (C) 2009-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -86,7 +86,7 @@ public class OrganizationQualityProfilesUiTest {
       "/organization/OrganizationQualityProfilesUiTest/should_display_profile_inheritance.html",
       "/organization/OrganizationQualityProfilesUiTest/should_display_profile_exporters.html");
 
-    tester.openBrowser().openHome().logIn().submitCredentials(user.getLogin())
+    tester.openBrowser().logIn().submitCredentials(user.getLogin())
       .openQualityProfile("xoo", "sample", organization.getKey())
       .shouldHaveAssociatedProject("Sample")
       .shouldAllowToChangeProjects();

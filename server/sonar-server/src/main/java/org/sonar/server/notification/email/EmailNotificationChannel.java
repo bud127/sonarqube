@@ -1,6 +1,6 @@
 /*
  * SonarQube
- * Copyright (C) 2009-2017 SonarSource SA
+ * Copyright (C) 2009-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -92,17 +92,18 @@ public class EmailNotificationChannel extends NotificationChannel {
   }
 
   @Override
-  public void deliver(Notification notification, String username) {
+  public boolean deliver(Notification notification, String username) {
     User user = userFinder.findByLogin(username);
     if (user == null || StringUtils.isBlank(user.email())) {
       LOG.debug("User does not exist or has no email: {}", username);
-      return;
+      return false;
     }
     EmailMessage emailMessage = format(notification);
     if (emailMessage != null) {
       emailMessage.setTo(user.email());
-      deliver(emailMessage);
+      return deliver(emailMessage);
     }
+    return false;
   }
 
   private EmailMessage format(Notification notification) {
@@ -119,15 +120,17 @@ public class EmailNotificationChannel extends NotificationChannel {
   /**
    * Visibility has been relaxed for tests.
    */
-  void deliver(EmailMessage emailMessage) {
+  boolean deliver(EmailMessage emailMessage) {
     if (StringUtils.isBlank(configuration.getSmtpHost())) {
       LOG.debug("SMTP host was not configured - email will not be sent");
-      return;
+      return false;
     }
     try {
       send(emailMessage);
+      return true;
     } catch (EmailException e) {
       LOG.error("Unable to send email", e);
+      return false;
     }
   }
 
@@ -137,7 +140,7 @@ public class EmailNotificationChannel extends NotificationChannel {
     Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
 
     try {
-      LOG.debug("Sending email: {}", emailMessage);
+      LOG.trace("Sending email: {}", emailMessage);
       String host = null;
       try {
         host = new URL(configuration.getServerBaseURL()).getHost();
@@ -188,6 +191,7 @@ public class EmailNotificationChannel extends NotificationChannel {
   private void configureSecureConnection(SimpleEmail email) {
     if (StringUtils.equalsIgnoreCase(configuration.getSecureConnection(), "ssl")) {
       email.setSSLOnConnect(true);
+      email.setSSLCheckServerIdentity(true);
       email.setSslSmtpPort(String.valueOf(configuration.getSmtpPort()));
 
       // this port is not used except in EmailException message, that's why it's set with the same value than SSL port.
@@ -196,6 +200,7 @@ public class EmailNotificationChannel extends NotificationChannel {
     } else if (StringUtils.equalsIgnoreCase(configuration.getSecureConnection(), "starttls")) {
       email.setStartTLSEnabled(true);
       email.setStartTLSRequired(true);
+      email.setSSLCheckServerIdentity(true);
       email.setSmtpPort(configuration.getSmtpPort());
     } else if (StringUtils.isBlank(configuration.getSecureConnection())) {
       email.setSmtpPort(configuration.getSmtpPort());

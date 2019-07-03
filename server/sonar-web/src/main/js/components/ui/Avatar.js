@@ -1,6 +1,6 @@
 /*
  * SonarQube
- * Copyright (C) 2009-2017 SonarSource SA
+ * Copyright (C) 2009-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -52,7 +52,7 @@ class Avatar extends React.PureComponent {
     gravatarServerUrl: PropTypes.string.isRequired,
     email: PropTypes.string,
     hash: PropTypes.string,
-    name: PropTypes.string.isRequired,
+    name: PropTypes.string,
     size: PropTypes.number.isRequired,
     className: PropTypes.string
   };
@@ -91,6 +91,9 @@ class Avatar extends React.PureComponent {
 
   render() {
     if (!this.props.enableGravatar) {
+      if (!this.props.name) {
+        return null;
+      }
       return this.renderFallback();
     }
 

@@ -1,6 +1,6 @@
 /*
  * SonarQube
- * Copyright (C) 2009-2017 SonarSource SA
+ * Copyright (C) 2009-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -57,6 +57,13 @@ public class TreeRootHolderImpl implements MutableTreeRootHolder {
     Component component = componentsByRef.get(ref);
     checkArgument(component != null, "Component with ref '%s' can't be found", ref);
     return component;
+  }
+
+  @Override
+  public int getSize() {
+    checkInitialized();
+    ensureComponentByRefIsPopulated();
+    return componentsByRef.size();
   }
 
   private void ensureComponentByRefIsPopulated() {

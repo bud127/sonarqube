@@ -1,6 +1,6 @@
 /*
  * SonarQube
- * Copyright (C) 2009-2017 SonarSource SA
+ * Copyright (C) 2009-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -47,6 +47,7 @@ import javax.annotation.Nullable;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.String.format;
 
@@ -337,5 +338,15 @@ public class DatabaseUtils {
         Throwables.propagate(e);
       }
     };
+  }
+
+  /**
+   * @throws IllegalArgumentException if the collection is not null and has strictly more
+   * than {@link #PARTITION_SIZE_FOR_ORACLE} values.
+   */
+  public static void checkThatNotTooManyConditions(@Nullable Collection<?> values, String message) {
+    if (values != null) {
+      checkArgument(values.size() <= PARTITION_SIZE_FOR_ORACLE, message);
+    }
   }
 }

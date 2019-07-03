@@ -1,6 +1,6 @@
 /*
  * SonarQube
- * Copyright (C) 2009-2017 SonarSource SA
+ * Copyright (C) 2009-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -605,7 +605,7 @@ export default class SourceViewerBase extends React.PureComponent {
     const { component } = this.state;
     const leakPeriodDate = component && component.leakPeriodDate;
     return leakPeriodDate
-      ? line.scmDate != null && parseDate(line.scmDate) >= leakPeriodDate
+      ? line.scmDate != null && parseDate(line.scmDate) > leakPeriodDate
       : false;
   };
 

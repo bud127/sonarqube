@@ -1,6 +1,6 @@
 /*
  * SonarQube
- * Copyright (C) 2009-2017 SonarSource SA
+ * Copyright (C) 2009-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -81,6 +81,25 @@ public class OAuth2RedirectionTest {
 
     underTest.create(request, response);
 
+    verify(response, never()).addCookie(any());
+  }
+
+  @Test
+  public void does_not_create_cookie_when_return_to_is_not_local_url() {
+    when(request.getParameter("return_to")).thenReturn("http://external_url");
+    underTest.create(request, response);
+    verify(response, never()).addCookie(any());
+
+    when(request.getParameter("return_to")).thenReturn("//local_file");
+    underTest.create(request, response);
+    verify(response, never()).addCookie(any());
+
+    when(request.getParameter("return_to")).thenReturn("/\\local_file");
+    underTest.create(request, response);
+    verify(response, never()).addCookie(any());
+
+    when(request.getParameter("return_to")).thenReturn("something_else");
+    underTest.create(request, response);
     verify(response, never()).addCookie(any());
   }
 

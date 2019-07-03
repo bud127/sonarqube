@@ -1,6 +1,6 @@
 /*
  * SonarQube
- * Copyright (C) 2009-2017 SonarSource SA
+ * Copyright (C) 2009-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -125,6 +125,11 @@ public interface CoreProperties {
    * @since 4.0
    */
   String CATEGORY_TECHNICAL_DEBT = "technicalDebt";
+
+  /**
+   * @since 6.7.6
+   */
+  String SUBCATEGORY_FILE_MOVE = "fileMove";
 
   /* Global settings */
   String SONAR_HOME = "SONAR_HOME";
@@ -511,4 +516,9 @@ public interface CoreProperties {
    * @since 5.1
    */
   String DEFAULT_ISSUE_ASSIGNEE = "sonar.issues.defaultAssigneeLogin";
+
+  /**
+   * @since 6.7.6
+   */
+  String SKIP_FILEMOVE_DETECTION_KEY = "sonar.skipFileMoveDetection";
 }

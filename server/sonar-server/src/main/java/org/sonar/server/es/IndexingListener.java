@@ -1,6 +1,6 @@
 /*
  * SonarQube
- * Copyright (C) 2009-2017 SonarSource SA
+ * Copyright (C) 2009-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -36,7 +36,7 @@ public interface IndexingListener {
     @Override
     public void onFinish(IndexingResult result) {
       if (result.getFailures() > 0) {
-        throw new IllegalStateException("Unrecoverable indexation failures");
+        throw new IllegalStateException(String.format("Unrecoverable indexation failures: %d errors among %d requests", result.getFailures(), result.getTotal()));
       }
     }
   };

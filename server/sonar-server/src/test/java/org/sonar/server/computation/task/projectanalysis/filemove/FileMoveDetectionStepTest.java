@@ -1,6 +1,6 @@
 /*
  * SonarQube
- * Copyright (C) 2009-2017 SonarSource SA
+ * Copyright (C) 2009-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -34,6 +34,9 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.sonar.api.config.internal.MapSettings;
+import org.sonar.api.utils.log.LogTester;
+import org.sonar.api.utils.log.LoggerLevel;
 import org.sonar.core.hash.SourceLinesHashesComputer;
 import org.sonar.db.DbClient;
 import org.sonar.db.DbSession;
@@ -45,7 +48,9 @@ import org.sonar.db.source.FileSourceDto;
 import org.sonar.server.computation.task.projectanalysis.analysis.Analysis;
 import org.sonar.server.computation.task.projectanalysis.analysis.AnalysisMetadataHolderRule;
 import org.sonar.server.computation.task.projectanalysis.component.Component;
+import org.sonar.server.computation.task.projectanalysis.component.ConfigurationRepository;
 import org.sonar.server.computation.task.projectanalysis.component.ReportComponent;
+import org.sonar.server.computation.task.projectanalysis.component.TestSettingsRepository;
 import org.sonar.server.computation.task.projectanalysis.component.TreeRootHolderRule;
 import org.sonar.server.computation.task.projectanalysis.source.SourceLinesRepositoryRule;
 
@@ -222,7 +227,11 @@ public class FileMoveDetectionStepTest {
   public SourceLinesRepositoryRule sourceLinesRepository = new SourceLinesRepositoryRule();
   @Rule
   public MutableMovedFilesRepositoryRule movedFilesRepository = new MutableMovedFilesRepositoryRule();
+  @Rule
+  public LogTester logTester = new LogTester();
 
+  private MapSettings settings = new MapSettings();
+  private ConfigurationRepository configurationRepository = new TestSettingsRepository(settings.asConfig());
   private DbClient dbClient = mock(DbClient.class);
   private DbSession dbSession = mock(DbSession.class);
   private ComponentDao componentDao = mock(ComponentDao.class);
@@ -230,7 +239,7 @@ public class FileMoveDetectionStepTest {
   private FileSimilarity fileSimilarity = new FileSimilarityImpl(new SourceSimilarityImpl());
   private long dbIdGenerator = 0;
 
-  private FileMoveDetectionStep underTest = new FileMoveDetectionStep(analysisMetadataHolder, treeRootHolder, dbClient,
+  private FileMoveDetectionStep underTest = new FileMoveDetectionStep(configurationRepository, analysisMetadataHolder, treeRootHolder, dbClient,
     sourceLinesRepository, fileSimilarity, movedFilesRepository);
 
   @Before
@@ -253,6 +262,18 @@ public class FileMoveDetectionStepTest {
     underTest.execute();
 
     assertThat(movedFilesRepository.getComponentsWithOriginal()).isEmpty();
+    assertThat(logTester.logs(LoggerLevel.DEBUG)).contains("First analysis. No file move detection.");
+  }
+
+  @Test
+  public void execute_detects_no_move_if_baseProjectSnapshot_is_not_null_but_fileMove_is_disabled() {
+    analysisMetadataHolder.setBaseAnalysis(ANALYSIS);
+    settings.setProperty("sonar.skipFileMoveDetection", "true");
+
+    underTest.execute();
+
+    assertThat(movedFilesRepository.getComponentsWithOriginal()).isEmpty();
+    assertThat(logTester.logs(LoggerLevel.DEBUG)).contains("File move detection disabled");
   }
 
   @Test
@@ -262,6 +283,7 @@ public class FileMoveDetectionStepTest {
     underTest.execute();
 
     assertThat(movedFilesRepository.getComponentsWithOriginal()).isEmpty();
+    assertThat(logTester.logs(LoggerLevel.DEBUG)).contains("Starting file move detection...");
   }
 
   @Test
@@ -272,6 +294,7 @@ public class FileMoveDetectionStepTest {
     underTest.execute();
 
     assertThat(movedFilesRepository.getComponentsWithOriginal()).isEmpty();
+    assertThat(logTester.logs(LoggerLevel.DEBUG)).contains("Starting file move detection...");
   }
 
   @Test
@@ -286,6 +309,7 @@ public class FileMoveDetectionStepTest {
     ComponentTreeQuery query = captor.getValue();
     assertThat(query.getBaseUuid()).isEqualTo(PROJECT.getUuid());
     assertThat(query.getQualifiers()).containsOnly(FILE, UNIT_TEST_FILE);
+    assertThat(logTester.logs(LoggerLevel.DEBUG)).contains("Starting file move detection...");
   }
 
   @Test
@@ -297,6 +321,7 @@ public class FileMoveDetectionStepTest {
     underTest.execute();
 
     assertThat(movedFilesRepository.getComponentsWithOriginal()).isEmpty();
+    assertThat(logTester.logs(LoggerLevel.DEBUG)).contains("Starting file move detection...");
   }
 
   @Test
@@ -308,6 +333,7 @@ public class FileMoveDetectionStepTest {
     underTest.execute();
 
     assertThat(movedFilesRepository.getComponentsWithOriginal()).isEmpty();
+    assertThat(logTester.logs(LoggerLevel.DEBUG)).contains("Starting file move detection...");
   }
 
   @Test
@@ -325,6 +351,8 @@ public class FileMoveDetectionStepTest {
     assertThat(originalFile.getId()).isEqualTo(dtos[0].getId());
     assertThat(originalFile.getKey()).isEqualTo(dtos[0].getDbKey());
     assertThat(originalFile.getUuid()).isEqualTo(dtos[0].uuid());
+    verifyStatisticsLog(1, 1);
+    assertThat(logTester.logs(LoggerLevel.DEBUG)).contains("Starting file move detection...");
   }
 
   @Test
@@ -338,6 +366,7 @@ public class FileMoveDetectionStepTest {
     underTest.execute();
 
     assertThat(movedFilesRepository.getComponentsWithOriginal()).isEmpty();
+    assertThat(logTester.logs(LoggerLevel.DEBUG)).contains("Starting file move detection...");
   }
 
   @Test
@@ -351,6 +380,7 @@ public class FileMoveDetectionStepTest {
     underTest.execute();
 
     assertThat(movedFilesRepository.getComponentsWithOriginal()).isEmpty();
+    assertThat(logTester.logs(LoggerLevel.DEBUG)).contains("Starting file move detection...");
   }
 
   @Test
@@ -365,6 +395,7 @@ public class FileMoveDetectionStepTest {
     underTest.execute();
 
     assertThat(movedFilesRepository.getComponentsWithOriginal()).isEmpty();
+    assertThat(logTester.logs(LoggerLevel.DEBUG)).contains("Starting file move detection...");
   }
 
   @Test
@@ -378,6 +409,9 @@ public class FileMoveDetectionStepTest {
     underTest.execute();
 
     assertThat(movedFilesRepository.getComponentsWithOriginal()).isEmpty();
+    assertThat(logTester.logs(LoggerLevel.DEBUG))
+      .contains("Starting file move detection...")
+      .contains("max score in matrix is less than min required score (85). Do nothing.");
   }
 
   @Test
@@ -392,6 +426,8 @@ public class FileMoveDetectionStepTest {
     underTest.execute();
 
     assertThat(movedFilesRepository.getComponentsWithOriginal()).isEmpty();
+    verifyStatisticsLog(1, 2);
+    assertThat(logTester.logs(LoggerLevel.DEBUG)).contains("Starting file move detection...");
   }
 
   @Test
@@ -406,6 +442,8 @@ public class FileMoveDetectionStepTest {
     underTest.execute();
 
     assertThat(movedFilesRepository.getComponentsWithOriginal()).isEmpty();
+    verifyStatisticsLog(2, 1);
+    assertThat(logTester.logs(LoggerLevel.DEBUG)).contains("Starting file move detection...");
   }
 
   @Test
@@ -418,6 +456,7 @@ public class FileMoveDetectionStepTest {
     underTest.execute();
 
     assertThat(movedFilesRepository.getComponentsWithOriginal()).isEmpty();
+    assertThat(logTester.logs(LoggerLevel.DEBUG)).contains("Starting file move detection...");
   }
 
   @Test
@@ -452,6 +491,9 @@ public class FileMoveDetectionStepTest {
     assertThat(originalFile5.getId()).isEqualTo(dtos[3].getId());
     assertThat(originalFile5.getKey()).isEqualTo(dtos[3].getDbKey());
     assertThat(originalFile5.getUuid()).isEqualTo(dtos[3].uuid());
+
+    verifyStatisticsLog(4, 2);
+    assertThat(logTester.logs(LoggerLevel.DEBUG)).contains("Starting file move detection...");
   }
 
   /**
@@ -495,6 +537,9 @@ public class FileMoveDetectionStepTest {
       .isEqualTo("1242_make_analysis_uuid_not_null_on_duplications_index.rb");
     assertThat(movedFilesRepository.getOriginalFile(addComponentUuidAndAnalysisUuidColumnToDuplicationsIndex).get().getKey())
       .isEqualTo("AddComponentUuidColumnToDuplicationsIndex.java");
+
+    verifyStatisticsLog(12, 6);
+    assertThat(logTester.logs(LoggerLevel.DEBUG)).contains("Starting file move detection...");
   }
 
   private String[] readLines(File filename) throws IOException {
@@ -558,4 +603,7 @@ public class FileMoveDetectionStepTest {
       .build();
   }
 
+  private void verifyStatisticsLog(int expectedDbFiles, int expectedAddedFiles) {
+    assertThat(logTester.logs(LoggerLevel.DEBUG)).contains("dbFiles=" + expectedDbFiles + " | addedFiles=" + expectedAddedFiles);
+  }
 }

@@ -1,6 +1,6 @@
 /*
  * SonarQube
- * Copyright (C) 2009-2017 SonarSource SA
+ * Copyright (C) 2009-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -26,6 +26,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Path;
 import java.util.Enumeration;
 import java.util.function.Predicate;
 import java.util.zip.ZipEntry;
@@ -84,12 +85,13 @@ public final class ZipUtils {
       FileUtils.forceMkdir(toDir);
     }
 
+    Path targetDirNormalizedPath = toDir.toPath().normalize();
     ZipInputStream zipStream = new ZipInputStream(stream);
     try {
       ZipEntry entry;
       while ((entry = zipStream.getNextEntry()) != null) {
         if (filter.test(entry)) {
-          unzipEntry(entry, zipStream, toDir);
+          unzipEntry(entry, zipStream, targetDirNormalizedPath);
         }
       }
       return toDir;
@@ -99,8 +101,10 @@ public final class ZipUtils {
     }
   }
 
-  private static void unzipEntry(ZipEntry entry, ZipInputStream zipStream, File toDir) throws IOException {
-    File to = new File(toDir, entry.getName());
+  private static void unzipEntry(ZipEntry entry, ZipInputStream zipStream, Path targetDirNormalized) throws IOException {
+    File to = targetDirNormalized.resolve(entry.getName()).toFile();
+    verifyInsideTargetDirectory(entry, to.toPath(), targetDirNormalized);
+
     if (entry.isDirectory()) {
       throwExceptionIfDirectoryIsNotCreatable(to);
     } else {
@@ -139,19 +143,23 @@ public final class ZipUtils {
       FileUtils.forceMkdir(toDir);
     }
 
+    Path targetDirNormalizedPath = toDir.toPath().normalize();
     ZipFile zipFile = new ZipFile(zip);
     try {
       Enumeration<? extends ZipEntry> entries = zipFile.entries();
       while (entries.hasMoreElements()) {
         ZipEntry entry = entries.nextElement();
         if (filter.test(entry)) {
-          File to = new File(toDir, entry.getName());
+          File target = new File(toDir, entry.getName());
+
+          verifyInsideTargetDirectory(entry, target.toPath(), targetDirNormalizedPath);
+
           if (entry.isDirectory()) {
-            throwExceptionIfDirectoryIsNotCreatable(to);
+            throwExceptionIfDirectoryIsNotCreatable(target);
           } else {
-            File parent = to.getParentFile();
+            File parent = target.getParentFile();
             throwExceptionIfDirectoryIsNotCreatable(parent);
-            copy(zipFile, entry, to);
+            copy(zipFile, entry, target);
           }
         }
       }
@@ -235,6 +243,13 @@ public final class ZipUtils {
     }
     for (File child : children) {
       doZip(child.getName(), child, out);
+    }
+  }
+
+  private static void verifyInsideTargetDirectory(ZipEntry entry, Path entryPath, Path targetDirNormalizedPath) {
+    if (!entryPath.normalize().startsWith(targetDirNormalizedPath)) {
+      // vulnerability - trying to create a file outside the target directory
+      throw new IllegalStateException("Unzipping an entry outside the target directory is not allowed: " + entry.getName());
     }
   }
 

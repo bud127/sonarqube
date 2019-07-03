@@ -1,6 +1,6 @@
 /*
  * SonarQube
- * Copyright (C) 2009-2017 SonarSource SA
+ * Copyright (C) 2009-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -56,7 +56,7 @@ public abstract class NotificationChannel {
    * @param notification the notification to deliver
    * @param userlogin the login of the user who should receive the notification
    */
-  public abstract void deliver(Notification notification, String userlogin);
+  public abstract boolean deliver(Notification notification, String userlogin);
 
   @Override
   public String toString() {

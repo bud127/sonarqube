@@ -1,6 +1,6 @@
 /*
  * SonarQube
- * Copyright (C) 2009-2017 SonarSource SA
+ * Copyright (C) 2009-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -52,6 +52,6 @@ public class XooPluginTest {
     SonarRuntime runtime = SonarRuntimeImpl.forSonarQube(Version.parse("6.6"), SonarQubeSide.SCANNER);
     Plugin.Context context = new Plugin.Context(runtime);
     new XooPlugin().define(context);
-    assertThat(context.getExtensions()).hasSize(50).contains(CpdTokenizerSensor.class);
+    assertThat(context.getExtensions()).hasSize(51).contains(CpdTokenizerSensor.class);
   }
 }

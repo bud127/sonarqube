@@ -1,6 +1,6 @@
 /*
  * SonarQube
- * Copyright (C) 2009-2017 SonarSource SA
+ * Copyright (C) 2009-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -82,5 +82,5 @@ it('should render links', () => {
     links: [{ name: 'n', type: 't', href: 'h' }]
   };
   const output = shallow(<ProjectCard project={project} />);
-  expect(output.find('.account-project-links').find('li').length).toBe(1);
+  expect(output.find('MetaLink').length).toBe(1);
 });

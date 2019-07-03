@@ -1,6 +1,6 @@
 /*
  * SonarQube
- * Copyright (C) 2009-2017 SonarSource SA
+ * Copyright (C) 2009-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -29,7 +29,7 @@ export function orderLinks(links) {
   const [provided, unknown] = partition(links, isProvided);
   return [
     ...sortBy(provided, link => PROVIDED_TYPES.indexOf(link.type)),
-    ...sortBy(unknown, link => link.name.toLowerCase())
+    ...sortBy(unknown, link => link.name && link.name.toLowerCase())
   ];
 }
 

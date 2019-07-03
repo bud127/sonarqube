@@ -1,6 +1,6 @@
 /*
  * SonarQube
- * Copyright (C) 2009-2017 SonarSource SA
+ * Copyright (C) 2009-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -51,13 +51,21 @@ export default class RecentHistory {
 
   static set(newHistory /*: History */) /*: void */ {
     if (window.localStorage) {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(newHistory));
+      try {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(newHistory));
+      } catch (e) {
+        /* Fail silently */
+      }
     }
   }
 
   static clear() /*: void */ {
     if (window.localStorage) {
-      window.localStorage.removeItem(STORAGE_KEY);
+      try {
+        window.localStorage.removeItem(STORAGE_KEY);
+      } catch (e) {
+        /* Fail silently */
+      }
     }
   }
 

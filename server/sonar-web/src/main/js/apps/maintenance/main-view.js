@@ -1,6 +1,6 @@
 /*
  * SonarQube
- * Copyright (C) 2009-2017 SonarSource SA
+ * Copyright (C) 2009-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -20,7 +20,7 @@
 import Marionette from 'backbone.marionette';
 import Template from './templates/maintenance-main.hbs';
 import { getSystemStatus, getMigrationStatus, migrateDatabase } from '../../api/system';
-import { getBaseUrl } from '../../helpers/urls';
+import { getReturnUrl } from '../../helpers/urls';
 
 export default Marionette.ItemView.extend({
   template: Template,
@@ -88,7 +88,7 @@ export default Marionette.ItemView.extend({
 
   loadPreviousPage() {
     setInterval(() => {
-      window.location = this.options.returnTo || getBaseUrl();
+      window.location.href = getReturnUrl(this.options.returnTo);
     }, 2500);
   },
 

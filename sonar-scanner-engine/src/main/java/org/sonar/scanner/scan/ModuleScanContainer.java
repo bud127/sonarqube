@@ -1,6 +1,6 @@
 /*
  * SonarQube
- * Copyright (C) 2009-2017 SonarSource SA
+ * Copyright (C) 2009-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import org.sonar.api.batch.InstantiationStrategy;
 import org.sonar.api.batch.fs.internal.DefaultInputModule;
 import org.sonar.api.batch.fs.internal.FileMetadata;
-import org.sonar.api.batch.fs.internal.SensorStrategy;
 import org.sonar.api.batch.rule.CheckFactory;
 import org.sonar.api.issue.NoSonarFilter;
 import org.sonar.api.resources.Project;
@@ -139,8 +138,6 @@ public class ModuleScanContainer extends ComponentContainer {
       ScannerExtensionDictionnary.class,
       IssueFilters.class,
       CoverageExclusions.class,
-
-      SensorStrategy.class,
 
       // rules
       new RulesProfileProvider(),

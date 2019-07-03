@@ -1,6 +1,6 @@
 /*
  * SonarQube
- * Copyright (C) 2009-2017 SonarSource SA
+ * Copyright (C) 2009-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -31,6 +31,7 @@ it('should match snapshot', () => {
   };
 
   expect(shallow(<MetaLink link={link} />)).toMatchSnapshot();
+  expect(shallow(<MetaLink iconOnly={true} link={link} />)).toMatchSnapshot();
 });
 
 it('should expand and collapse link', () => {

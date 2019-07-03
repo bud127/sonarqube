@@ -1,6 +1,6 @@
 /*
  * SonarQube
- * Copyright (C) 2009-2017 SonarSource SA
+ * Copyright (C) 2009-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -54,15 +54,21 @@ it('renders background task license info correctly', () => {
   expect(
     getWrapper({ currentTask: { status: 'FAILED', errorType: 'LICENSING', errorMessage: 'Foo' } })
   ).toMatchSnapshot();
+  expect(
+    getWrapper(
+      { currentTask: { status: 'FAILED', errorType: 'LICENSING', errorMessage: 'Foo' } },
+      { canAdmin: false }
+    )
+  ).toMatchSnapshot();
 });
 
-function getWrapper(props = {}) {
+function getWrapper(props = {}, context = {}) {
   return shallow(
     <ComponentNavBgTaskNotif
       component={component}
       currentTask={{ status: 'FAILED' } as Task}
       {...props}
     />,
-    { context: { canAdmin: true } }
+    { context: { canAdmin: true, ...context } }
   );
 }

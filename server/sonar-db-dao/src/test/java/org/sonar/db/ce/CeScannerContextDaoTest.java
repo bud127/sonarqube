@@ -1,6 +1,6 @@
 /*
  * SonarQube
- * Copyright (C) 2009-2017 SonarSource SA
+ * Copyright (C) 2009-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -120,6 +120,28 @@ public class CeScannerContextDaoTest {
     assertThat(underTest.selectScannerContext(dbSession, SOME_UUID)).isEmpty();
     assertThat(underTest.selectScannerContext(dbSession, "UUID_2")).contains(data2);
     assertThat(underTest.selectScannerContext(dbSession, "UUID_3")).isEmpty();
+  }
+
+  @Test
+  public void selectOlderThan() {
+    insertWithCreationDate("TASK_1", 1_450_000_000_000L);
+    insertWithCreationDate("TASK_2", 1_460_000_000_000L);
+    insertWithCreationDate("TASK_3", 1_470_000_000_000L);
+
+    assertThat(underTest.selectOlderThan(dbSession, 1_465_000_000_000L))
+      .containsOnly("TASK_1", "TASK_2");
+    assertThat(underTest.selectOlderThan(dbSession, 1_450_000_000_000L))
+      .isEmpty();
+  }
+
+  private void insertWithCreationDate(String uuid, long createdAt) {
+    dbTester.executeInsert(
+      "CE_SCANNER_CONTEXT",
+      "task_uuid", uuid,
+      "created_at", createdAt,
+      "updated_at", 1,
+      "context_data", "YoloContent".getBytes());
+    dbSession.commit();
   }
 
   private String insertScannerContext(String uuid) {

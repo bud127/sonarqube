@@ -1,6 +1,6 @@
 /*
  * SonarQube
- * Copyright (C) 2009-2017 SonarSource SA
+ * Copyright (C) 2009-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -52,6 +52,13 @@ it('should be able to render with hash only', () => {
 it('falls back to dummy avatar', () => {
   const avatar = shallow(
     <Avatar enableGravatar={false} gravatarServerUrl="" name="Foo Bar" size={30} />
+  );
+  expect(avatar).toMatchSnapshot();
+});
+
+it('do not fail when name is missing', () => {
+  const avatar = shallow(
+    <Avatar enableGravatar={false} gravatarServerUrl="" name={undefined} size={30} />
   );
   expect(avatar).toMatchSnapshot();
 });

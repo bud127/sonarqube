@@ -1,6 +1,6 @@
 /*
  * SonarQube
- * Copyright (C) 2009-2017 SonarSource SA
+ * Copyright (C) 2009-2018 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -69,7 +69,7 @@ public class CeCleaningSchedulerImpl implements CeCleaningScheduler {
 
   private void cancelWornOuts() {
     try {
-      LOG.debug("Deleting any worn out task");
+      LOG.trace("Deleting any worn out task");
       internalCeQueue.cancelWornOuts();
     } catch (Exception e) {
       LOG.warn("Failed to cancel worn out tasks", e);
@@ -78,7 +78,7 @@ public class CeCleaningSchedulerImpl implements CeCleaningScheduler {
 
   private void resetTasksWithUnknownWorkerUUIDs() {
     try {
-      LOG.debug("Resetting state of tasks with unknown worker UUIDs");
+      LOG.trace("Resetting state of tasks with unknown worker UUIDs");
       internalCeQueue.resetTasksWithUnknownWorkerUUIDs(ceDistributedInformation.getWorkerUUIDs());
     } catch (Exception e) {
       LOG.warn("Failed to reset tasks with unknown worker UUIDs", e);
